@@ -47,6 +47,7 @@ public class BlockScript : MonoBehaviour
         if (collision.gameObject.CompareTag("Player"))
         {
             Debug.Log("Cube hit by player!");
+            player.GetComponent<PlayerLaunchScript>().PlayCollisionSFX();
             if ((collision.gameObject.GetComponent<Rigidbody>().linearVelocity - rb.linearVelocity).magnitude > breakVelocity)
             {
                 Destroy(gameObject);

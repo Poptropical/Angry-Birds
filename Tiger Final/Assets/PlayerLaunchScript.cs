@@ -8,7 +8,7 @@ public class PlayerLaunchScript : MonoBehaviour
     //Velocity player is launched with
     float launchVel = 0; //baseline velocity that increases the longer space is held
     float launchForce = 25.0f; //how much launch velocity increases by a second as space is held down
-    float maxLaunchVel = 50.0f; //maximum launch velocity
+    float maxLaunchVel = 30.0f; //maximum launch velocity
     float shotPreviewDelay = 0.005f;
     bool canLaunch = true; //whether the player can launch or not
     public Vector3 launchDirection; //vector toward which the player initially flies
@@ -23,11 +23,17 @@ public class PlayerLaunchScript : MonoBehaviour
     float rotationSpeed = 90f; // degrees per second
     public float scoreNeeded = 500f; //score needed to win
     public int shotCount = 3; //number of shots left
+    public GameObject plane; //the plane that follows the ball around
+    public GameObject sfx1; //audio player for launch SFX
+    public GameObject sfx2; //audio player for collision SFX
     
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        plane = GameObject.Find("Plane");
+        sfx1 = GameObject.Find("SFX1");
+        sfx2 = GameObject.Find("SFX2");
         //Sets rb to the player's rigidbody
         if (ball != null)
         {
@@ -65,7 +71,7 @@ public class PlayerLaunchScript : MonoBehaviour
         }
         Debug.Log("Running2");
         //If space is held, the launch becomes stronger based on launchforce
-        if (Input.GetKey(KeyCode.Space))
+        if (Input.GetKey(KeyCode.Space) && canLaunch && shotCount > 0 && playerScore < scoreNeeded)
         {
             launchVel += launchForce * Time.deltaTime;
         }
@@ -73,6 +79,7 @@ public class PlayerLaunchScript : MonoBehaviour
         //If space is released, velocity is targeted toward the launch direction with the final launch force
         if (Input.GetKeyUp(KeyCode.Space))
         {
+            PlayLaunchSFX();
             if (launchDirection != null && canLaunch && shotCount > 0)
             {
                 canLaunch = false; //prevents midair launches
@@ -88,14 +95,14 @@ public class PlayerLaunchScript : MonoBehaviour
             launchVel = 0;
         }
         Debug.Log(launchDirection.magnitude);
-        if (Input.GetKey(KeyCode.A) && launchDirection != null && canLaunch)
+        if (Input.GetKey(KeyCode.A) && launchDirection != null && canLaunch && playerScore < scoreNeeded)
         {
             // Rotates launchDirection to the left, proportional to time held
             launchDirection = Quaternion.Euler(0, -rotationSpeed * Time.deltaTime, 0) * launchDirection;
             launchDirection.Normalize();
         }
         Debug.Log("Running5");
-        if (Input.GetKey(KeyCode.D) && launchDirection != null && canLaunch)
+        if (Input.GetKey(KeyCode.D) && launchDirection != null && canLaunch && playerScore < scoreNeeded)
         {
             // Rotates launchDirection to the right, proportional to time held
             launchDirection = Quaternion.Euler(0, rotationSpeed * Time.deltaTime, 0) * launchDirection;
@@ -134,15 +141,16 @@ public class PlayerLaunchScript : MonoBehaviour
         Debug.Log("Running9");
         if (scoreText != null)
         {
-            scoreText.text = "Score: " + playerScore + "\nScore Needed = " + scoreNeeded + "\nShots Left: " + shotCount;
+            scoreText.text = "Score: " + playerScore + "\nScore Needed: " + scoreNeeded + "\nShots Left: " + shotCount;
         }
-
         Debug.Log("running10");
+
+        //Resets player when it comes to a stop
         if (!canLaunch && rb.linearVelocity.magnitude < 0.1f)
         {
             launchDirection = new Vector3(100, 75, 0);
             canLaunch = true;
-            rb.transform.position = Vector3.zero;
+            rb.transform.position = Vector3.zero - transform.up * 0.5f; //slightly lowered to keep ball from bouncing on respawn
             rb.linearVelocity = Vector3.zero;
             
             launchDirection.Normalize();
@@ -150,6 +158,13 @@ public class PlayerLaunchScript : MonoBehaviour
             cam.transform.position = transform.position + launchDirection * -13 + new Vector3(0, 7, 0);
             cam.transform.LookAt(transform);
         }
+
+        //sets plane sprite pos and rotation
+        plane.transform.position = new Vector3(rb.position.x, rb.position.y - 0.5f, rb.position.z);
+        //sets rotation to look in launch direction but 20 degrees downward
+        plane.transform.rotation = Quaternion.LookRotation(launchDirection) * Quaternion.Euler(30, 0, 0);
+
+
         Debug.Log("running11");
         if (playerScore >= scoreNeeded)
         {
@@ -172,6 +187,30 @@ public class PlayerLaunchScript : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.R))
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+    }
+
+    public void PlayLaunchSFX()
+    {
+        if (sfx1 != null)
+        {
+            AudioSource audioSource = sfx1.GetComponent<AudioSource>();
+            if (audioSource != null)
+            {
+                audioSource.Play();
+            }
+        }
+    }
+
+    public void PlayCollisionSFX()
+    {
+        if (sfx2 != null)
+        {
+            AudioSource audioSource = sfx2.GetComponent<AudioSource>();
+            if (audioSource != null)
+            {
+                audioSource.Play();
+            }
         }
     }
 }
