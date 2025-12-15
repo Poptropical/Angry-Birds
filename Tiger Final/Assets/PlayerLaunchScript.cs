@@ -128,7 +128,7 @@ public class PlayerLaunchScript : MonoBehaviour
         }
         Debug.Log("Running8");
         shotPreviewDelay -= Time.deltaTime;
-        if (shotPreviewDelay <= 0 && rb.linearVelocity == Vector3.zero && launchDirection != null)
+        if (shotPreviewDelay <= 0 && rb.linearVelocity.magnitude < 0.1f && launchDirection != null)
         {
             GameObject tempshot = Instantiate(shotPreview, rb.position, Quaternion.identity);
             if (launchVel > 0.01f) 
@@ -175,6 +175,7 @@ public class PlayerLaunchScript : MonoBehaviour
             }
         }
 
+        Debug.Log("running12");
         if (shotCount <= 0 && rb.linearVelocity.magnitude < 0.1f && playerScore < scoreNeeded)
         {
             //You lose
@@ -184,6 +185,8 @@ public class PlayerLaunchScript : MonoBehaviour
             }
         }
 
+        Debug.Log("running13");
+        // Reload active scene when player presses R
         if (Input.GetKeyDown(KeyCode.R))
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);

@@ -44,54 +44,70 @@ public class BlockScript : MonoBehaviour
     // Ensure the method has the correct signature so Unity invokes it.
     void OnCollisionEnter(Collision collision)
     {
+        // Safely get PlayerLaunchScript from the assigned player or from the colliding object
+        PlayerLaunchScript targetPlayer = null;
+        if (player != null)
+        {
+            targetPlayer = player.GetComponent<PlayerLaunchScript>();
+        }
+        if (targetPlayer == null)
+        {
+            targetPlayer = collision.gameObject.GetComponentInParent<PlayerLaunchScript>();
+        }
+
         if (collision.gameObject.CompareTag("Player"))
         {
             Debug.Log("Cube hit by player!");
-            player.GetComponent<PlayerLaunchScript>().PlayCollisionSFX();
-            if ((collision.gameObject.GetComponent<Rigidbody>().linearVelocity - rb.linearVelocity).magnitude > breakVelocity)
+            if (targetPlayer != null)
             {
-                Destroy(gameObject);
-                collision.gameObject.GetComponent<Rigidbody>().linearVelocity *= slowdownMagnitude;
-                // Increase player score when block is destroyed
-                PlayerLaunchScript targetPlayer = null;
-                if (player != null)
+                targetPlayer.PlayCollisionSFX();
+            }
+            else
+            {
+                Debug.LogWarning("BlockScript: PlayCollisionSFX target not found.", this);
+            }
+
+            Rigidbody otherRb = collision.gameObject.GetComponent<Rigidbody>();
+            if (otherRb != null && rb != null)
+            {
+                if ((otherRb.linearVelocity - rb.linearVelocity).magnitude > breakVelocity)
                 {
-                    targetPlayer = player.GetComponent<PlayerLaunchScript>();
-                }
-                if (targetPlayer == null)
-                {
-                    targetPlayer = collision.gameObject.GetComponentInParent<PlayerLaunchScript>();
-                }
-                if (targetPlayer != null)
-                {
-                    targetPlayer.playerScore += scoreValue;
-                }
-                else
-                {
-                    Debug.Log("BlockScript: no PlayerLaunchScript found to award score (Player branch).", this);
+                    Destroy(gameObject);
+                    otherRb.linearVelocity *= slowdownMagnitude;
+                    if (targetPlayer != null)
+                    {
+                        targetPlayer.playerScore += scoreValue;
+                    }
+                    else
+                    {
+                        Debug.Log("BlockScript: no PlayerLaunchScript found to award score (Player branch).", this);
+                    }
                 }
             }
+            else
+            {
+                Debug.LogWarning("BlockScript: missing Rigidbody on collision or block when evaluating break condition.", this);
+            }
         }
-        if (rb.linearVelocity.magnitude > breakVelocity)
+        if (rb != null && rb.linearVelocity.magnitude > breakVelocity)
         {
             Destroy(gameObject);
             // Increase player score when block is destroyed
-            PlayerLaunchScript targetPlayer = null;
-            if (player != null)
-            {
-                targetPlayer = player.GetComponent<PlayerLaunchScript>();
-            }
-            if (targetPlayer == null)
-            {
-                targetPlayer = collision.gameObject.GetComponentInParent<PlayerLaunchScript>();
-            }
             if (targetPlayer != null)
             {
                 targetPlayer.playerScore += scoreValue;
             }
             else
             {
-                Debug.Log("BlockScript: no PlayerLaunchScript found to award score (Block-moving branch).", this);
+                PlayerLaunchScript fallback = collision.gameObject.GetComponentInParent<PlayerLaunchScript>();
+                if (fallback != null)
+                {
+                    fallback.playerScore += scoreValue;
+                }
+                else
+                {
+                    Debug.Log("BlockScript: no PlayerLaunchScript found to award score (Block-moving branch).", this);
+                }
             }
         }
     }
