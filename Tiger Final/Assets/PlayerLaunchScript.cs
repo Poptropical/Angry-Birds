@@ -20,7 +20,7 @@ public class PlayerLaunchScript : MonoBehaviour
     public GameObject canvas; //the UI canvas
     public TMP_Text scoreText; //the UI text that shows the player's score
     public float playerScore = 0; //the player's score based on blocks hit
-    float rotationSpeed = 90f; // degrees per second
+    float rotationSpeed = 50f; // degrees per second
     public float scoreNeeded = 500f; //score needed to win
     public int shotCount = 3; //number of shots left
     public GameObject plane; //the plane that follows the ball around

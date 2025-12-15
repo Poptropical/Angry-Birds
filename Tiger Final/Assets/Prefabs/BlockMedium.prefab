@@ -127,7 +127,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlockScript
   player: {fileID: 0}
-  breakVelocity: 8
+  breakVelocity: 5.25
   scoreValue: 50
   slowdownMagnitude: 0.8
 --- !u!54 &6340538883677184089
